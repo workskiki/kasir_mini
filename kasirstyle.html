@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Kasir Mini by Kiki</title>
+  <style>
+    body {
+      background: #f2f2f2;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: 40px;
+    }
+    .container {
+      background: #fff;
+      border: 2px solid #ccc;
+      border-radius: 16px;
+      box-shadow: 5px 5px 10px rgba(0,0,0,0.1);
+      padding: 30px;
+      max-width: 600px;
+      width: 100%;
+    }
+    h2 {
+      margin-top: 0;
+      font-weight: bold;
+    }
+    label {
+      display: block;
+      margin: 10px 0 5px;
+    }
+    select, input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    input[type="number"] {
+      background-color: #d0e8ff;
+    }
+    select {
+      background-color: #c8facc;
+    }
+    button {
+      padding: 10px 15px;
+      margin: 5px 5px 10px 0;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .btn-tambah { background-color: #c3dafe; }
+    .btn-hitung { background-color: #fed7d7; }
+    .btn-tukar { background-color: #c6f6d5; }
+    .btn-reset { background-color: #fefcbf; }
+    button:hover {
+      opacity: 0.85;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    table th, table td {
+      border-bottom: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    table th {
+      background-color: #f5f5f5;
+    }
+    .total-wrapper {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    h3 {
+      margin-top: 30px;
+    }
+    #outputTotal {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 100%;
+    max-width: 300px;
+    margin-left: auto;
+    }
+
+    .total-row {
+    display: flex;
+    justify-content: flex-end;
+    padding: 6px 0;
+    /* border-top DIHAPUS dari sini */
+    font-size: 14px;
+    margin-bottom: 4px;
+    gap: 16px;
+    max-width: 250px;
+    margin-left: auto;
+    }
+
+    .total-group {
+    border-top: 1px solid #ccc; /* ← tambahkan di sini */
+    margin-top: 8px;
+    padding-top: 8px;
+    }
+
+
+    .total-row span:first-child {
+    font-weight: bold;
+    text-align: right;
+    }
+
+    .total-row span:last-child {
+    font-weight: normal;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🛒 Kasir Mini – Versi <span style="color: cornflowerblue">Web</span></h2>
+
+    <label>Pilih Barang:</label>
+    <select id="namaBarang">
+      <option value="Indomie" data-harga="3000">Indomie - Rp3000</option>
+      <option value="Teh Botol" data-harga="5000">Teh Botol - Rp5000</option>
+      <option value="Roti" data-harga="8000">Roti - Rp8000</option>
+      <option value="Aqua" data-harga="4000">Aqua - Rp4000</option>
+    </select>
+
+    <label>Jumlah:</label>
+    <input type="number" id="jumlahBarang" min="1" value="1">
+
+    <div style="margin-top: 15px;">
+      <button class="btn-tambah" onclick="tambahBarang()">➕ Tambah Barang</button>
+      <button class="btn-hitung" onclick="hitungTotal()">🧮 Hitung Total</button>
+      <button class="btn-tukar" onclick="tukarBarang()">↩️ Tukar Barang</button>
+      <button class="btn-reset" onclick="hapusSemua()">🗑️ Hapus Semua</button>
+    </div>
+
+    <h3>📋 Daftar Belanja</h3>
+    <div id="listBarang"></div>
+
+    <h3>💰 Total</h3>
+    <div id="outputTotal"></div>
+  </div>
+
+  <script>
+    let daftarBelanja = [];
+
+    function tambahBarang() {
+      const select = document.getElementById("namaBarang");
+      const nama = select.value;
+      const harga = Number(select.options[select.selectedIndex].dataset.harga);
+      const jumlah = Number(document.getElementById("jumlahBarang").value);
+
+      daftarBelanja.push({ nama, harga, jumlah });
+      tampilkanBarang();
+    }
+
+    function tukarBarang() {
+      const barang = document.getElementById("namaBarang").value;
+      const jumlah = parseInt(document.getElementById("jumlahBarang").value);
+
+      const indexBarang = daftarBelanja.findIndex(item => item.nama === barang);
+
+      if (indexBarang === -1) {
+        alert("Barang belum pernah ditambahkan.");
+        return;
+      }
+
+      if (jumlah > daftarBelanja[indexBarang].jumlah) {
+        alert("Jumlah yang ingin ditukar melebihi jumlah yang ada.");
+        return;
+      }
+
+      daftarBelanja[indexBarang].jumlah -= jumlah;
+
+      if (daftarBelanja[indexBarang].jumlah === 0) {
+        daftarBelanja.splice(indexBarang, 1);
+      }
+
+      tampilkanBarang();
+    }
+
+    function hapusSemua() {
+      if (confirm("Yakin ingin menghapus semua barang?")) {
+        daftarBelanja = [];
+        tampilkanBarang();
+        document.getElementById("outputTotal").innerHTML = "";
+      }
+    }
+
+    function tampilkanBarang() {
+      const list = document.getElementById("listBarang");
+
+      if (daftarBelanja.length === 0) {
+        list.innerHTML = "<p>Tidak ada barang dalam daftar.</p>";
+        return;
+      }
+
+      let html = `
+        <table>
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Nama</th>
+              <th>Jumlah</th>
+              <th>Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      daftarBelanja.forEach((item, i) => {
+        html += `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${item.nama}</td>
+            <td>${item.jumlah}</td>
+            <td>Rp${item.harga * item.jumlah}</td>
+          </tr>
+        `;
+      });
+
+      html += `</tbody></table>`;
+      list.innerHTML = html;
+    }
+
+    function hitungTotal() {
+        let total = 0;
+        daftarBelanja.forEach(item => {
+            total += item.harga * item.jumlah;
+        });
+
+        let diskon = 0;
+        if (total > 100000) {
+            diskon = 0.10 * total;
+        }
+
+        let totalAkhir = total - diskon;
+
+        const output = document.getElementById("outputTotal");
+        output.innerHTML = `
+              <div class="total-group"> <!-- Tambahkan pembungkus ini -->
+                <div class="total-row">
+                <span>Total Belanja:</span>
+                <span>Rp${total}</span>
+                </div>
+                <div class="total-row">
+                <span>Total Bayar:</span>
+                <span>Rp${totalAkhir}</span>
+                </div>
+            </div>
+            `;
+        }
+
+  </script>
+</body>
+</html>
